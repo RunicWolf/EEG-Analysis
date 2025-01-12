@@ -60,3 +60,38 @@
 3. Begin feature extraction from processed EEG data for sleep stage classification.
 4. Log progress in `LOG.md` and push updates to the repository.
 
+## January 12, 2025
+
+### Summary of Work:
+1. **BCI Competition IV Preprocessing:**
+   - Successfully preprocessed calibration and evaluation data from the BCI Competition IV Dataset 1 using the ASCII version of the dataset.
+   - Handled large EEG data files (`_cnt.txt`) and their corresponding metadata (`_nfo.txt`) and markers (`_mrk.txt`).
+
+2. **Issues Resolved:**
+   - Mismatch between metadata channel count and EEG data columns:
+     - Dynamically generated channel names (`Ch1`, `Ch2`, ..., `Ch59`) to match the data structure.
+   - Improved data loading for large files using `np.genfromtxt` for efficiency.
+   - Correctly added annotations from markers for calibration files.
+
+3. **Output:**
+   - Processed `.fif` files saved to the `processed_data` directory.
+   - Example: 
+     - `calib_BCICIV_calib_ds1a_1000Hz_raw.fif`
+     - Successfully verified:
+       - **59 EEG channels**
+       - **200 annotations** (100 for `Class1`, 100 for `Class2`).
+
+4. **Verification:**
+   - Loaded and inspected `.fif` files using MNE.
+   - Visualized raw EEG data and annotations using `raw.plot()`.
+
+5. **Challenges Faced:**
+   - Metadata inconsistencies in `_nfo.txt` files (e.g., incorrect channel count).
+   - Long loading times for large `_cnt.txt` files, resolved with `np.genfromtxt`.
+
+### Next Steps:
+1. Process remaining calibration and evaluation files.
+2. Verify all `.fif` files for completeness and correctness.
+3. Begin feature extraction and classification for motor imagery tasks.
+4. Log future progress and results.
+
