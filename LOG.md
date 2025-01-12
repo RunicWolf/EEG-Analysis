@@ -95,3 +95,17 @@
 3. Begin feature extraction and classification for motor imagery tasks.
 4. Log future progress and results.
 
+## January 12, 2025
+
+### UKB-EEG Preprocessing:
+1. Successfully preprocessed EEG time series for all sets (F, N, O, S, Z).
+2. Applied GPU-accelerated bandpass filtering (0.5–40 Hz).
+3. Processed data saved in `.fif` format for each file:
+   - Example: `F001_raw.fif` in `processed_data/F/`.
+
+### Challenges Faced:
+- No major challenges.
+
+### Next Steps:
+1. Inspect processed data for integrity and filtering.
+2. Begin feature extraction or analysis on preprocessed EEG data.
