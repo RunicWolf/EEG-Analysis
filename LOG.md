@@ -109,3 +109,59 @@
 ### Next Steps:
 1. Inspect processed data for integrity and filtering.
 2. Begin feature extraction or analysis on preprocessed EEG data.
+
+## January 12, 2025
+
+### UKB-EEG Preprocessing:
+1. Successfully preprocessed EEG time series for all sets (F, N, O, S, Z).
+2. Applied GPU-accelerated bandpass filtering (0.5–40 Hz).
+3. Processed data saved in `.fif` format for each file:
+   - Example: `F001_raw.fif` in `processed_data/F/`.
+
+### Feature Extraction:
+1. Extracted key statistical and EEG power band features from the preprocessed **UKB-EEG** dataset.
+2. Features extracted include:
+   - **Statistical Features**: Mean, Standard Deviation (STD), Skewness, Kurtosis.
+   - **EEG Power Band Features**: Delta Power, Theta Power, Alpha Power, Beta Power, Gamma Power.
+   - **Sample Entropy** was also computed for signal complexity analysis.
+3. Stored extracted features in a structured format for model input.
+
+### Model Training:
+1. Chose **XGBoost Classifier** to model the EEG dataset for classification (F, N, O, S, Z).
+2. Initial **cross-validation accuracy** of **86.8%** was achieved using the following features:
+   - Alpha Power, Zero-Crossing Rate, Beta Power, Sample Entropy, Theta Power, Delta Power.
+   - Hyperparameters used:
+     - **n_estimators**: 100
+     - **learning_rate**: 0.1
+     - **max_depth**: 3
+     - **min_child_weight**: 1
+     - **subsample**: 1.0
+     - **colsample_bytree**: 1.0
+
+### Hyperparameter Tuning:
+1. Conducted **grid search** for hyperparameter optimization.
+2. Optimal hyperparameters found:
+   - **n_estimators**: 200
+   - **learning_rate**: 0.1
+   - **max_depth**: 3
+   - **min_child_weight**: 1
+   - **subsample**: 1.0
+   - **colsample_bytree**: 1.0
+3. Best **mean cross-validation accuracy**: **0.8680**.
+
+### Model Evaluation:
+1. Applied **permutation importance** to assess feature importance.
+2. Key features identified:
+   - **Sample Entropy**, **Zero-Crossing Rate**, and **Beta Power** were the most important features for classification.
+3. Visualized feature importance using **SHAP** values.
+   - Addressed **dimension mismatch** issues by aggregating **SHAP values** across classes.
+
+### Next Steps:
+1. **Regularization**: Apply **L1 (Lasso)** or **L2 (Ridge)** regularization for further model tuning to reduce overfitting.
+2. **Model Calibration**: Use **CalibratedClassifierCV** to refine probability predictions.
+3. **Ensemble Methods**: Experiment with **Stacking** or **Voting Classifiers** to combine **XGBoost** with other models like **Random Forest** or **Logistic Regression** to improve model accuracy.
+4. **Feature Engineering**: Explore additional feature engineering or data augmentation techniques to further improve the model.
+
+### Challenges Faced:
+1. Encountered **dimension mismatches** while visualizing **SHAP** values.
+2. Warnings related to **GPU training** in **XGBoost**, but **GPU acceleration** was successfully enabled after modifying the configuration.
