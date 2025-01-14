@@ -165,3 +165,38 @@
 ### Challenges Faced:
 1. Encountered **dimension mismatches** while visualizing **SHAP** values.
 2. Warnings related to **GPU training** in **XGBoost**, but **GPU acceleration** was successfully enabled after modifying the configuration.
+
+## January 13, 2025
+
+### Regularization and Hyperparameter Tuning with XGBoost:
+
+1. **Feature Selection**:
+   - Selected top 6 features based on previous analysis:
+     - `Alpha_Power`, `Zero-Crossing Rate`, `Beta_Power`, `Sample_Entropy`, `Theta_Power`, `Delta_Power`.
+   
+2. **Model Training**:
+   - Used **XGBoost** for classification with GPU acceleration and cross-validation.
+   - Regularization parameters (`reg_alpha`, `reg_lambda`) were adjusted to prevent overfitting.
+   - Best mean cross-validation accuracy achieved: **0.8720** with the hyperparameters:
+     - `n_estimators`: 200
+     - `learning_rate`: 0.1
+     - `max_depth`: 7
+     - `min_child_weight`: 1
+     - `subsample`: 0.8
+     - `colsample_bytree`: 1.0
+     - `reg_alpha`: 0.1
+     - `reg_lambda`: 1
+   
+3. **Hyperparameter Tuning**:
+   - Conducted manual hyperparameter tuning with a parameter grid.
+   - Utilized GPU for faster training.
+   - Best performing model parameters were recorded and verified with 5-fold cross-validation.
+   - Achieved best mean CV accuracy of **0.8720** with regularization parameters included.
+
+4. **Challenges Faced**:
+   - Encountered some compatibility warnings related to XGBoost (`use_label_encoder` parameter).
+   - There were a few issues with correct handling of class labels during cross-validation, which were resolved by properly encoding the target values.
+
+5. **Next Steps**:
+   - Explore more advanced techniques like **feature engineering**, **ensemble methods**, or **deep learning** to improve accuracy.
+   - Fine-tune the model further and experiment with additional regularization and learning rate adjustments.
