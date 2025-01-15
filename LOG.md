@@ -25,3 +25,16 @@ This file contains a detailed log of all changes and milestones for the `EEG-Ana
 - Build the model training pipeline.
 - Explore hyperparameter tuning for optimal performance.
 
+### **16th January 2025**
+- Successfully balanced the dataset:
+  - Original label distribution: `(array([0.], dtype=float32), array([50]))`
+  - Balanced label distribution: `(array([0, 1, 2]), array([80, 80, 80]))`
+  - Synthetic classes created using data augmentation (Gaussian noise, amplitude scaling).
+- Applied PCA for dimensionality reduction:
+  - Explained variance ratio: `[0.9704, 0.0223, 0.0070, 0.0002]`.
+- Selected top features using `SelectKBest`:
+  - Valid feature scores: `[52.03, 32.14, 77.79, 17.77]`.
+- Split the dataset:
+  - Training, validation, and test sets saved as `.pt` files.
+- Files saved in: `C:\Users\prajw\Desktop\docs\All Projects\EEG\EEG-Analysis-Chatbot\processed_data\Bon_UKB`.
+
