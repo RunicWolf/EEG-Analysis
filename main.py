@@ -1,6 +1,8 @@
-from data_loader import load_data, save_data
+from data_loader import load_data, save_data, split_and_save_dataset
 from preprocessing import handle_missing_values, handle_outliers, normalize_data
 from augmentation import augment_and_label
+import torch
+
 from feature_engineering import (
     one_hot_encode_labels,
     apply_pca,
@@ -52,19 +54,18 @@ if __name__ == "__main__":
     k = min(5, features.shape[1])
     features = select_top_features(features, flat_labels, k=k)
 
-    print("Splitting data...")
-    X_train, X_temp, y_train, y_temp = train_test_split(
-        features, one_hot_labels, test_size=0.3, stratify=flat_labels, random_state=42
-    )
-    X_val, X_test, y_val, y_test = train_test_split(
-        X_temp, y_temp, test_size=0.5, stratify=flat_labels[:len(y_temp)], random_state=42
-    )
+    print(f"Augmented Data Shape: {balanced_data.shape}")
+    print(f"Augmented Labels Shape: {balanced_labels.shape}")
 
-    print("Saving split data...")
-    save_data(X_train, os.path.join(OUTPUT_DIR, "train.pt"))
-    save_data(X_val, os.path.join(OUTPUT_DIR, "val.pt"))
-    save_data(X_test, os.path.join(OUTPUT_DIR, "test.pt"))
-    save_data(y_train, os.path.join(OUTPUT_DIR, "train_labels.pt"))
-    save_data(y_val, os.path.join(OUTPUT_DIR, "val_labels.pt"))
-    save_data(y_test, os.path.join(OUTPUT_DIR, "test_labels.pt"))
+    # Splitting and saving augmented dataset
+    print("Splitting and saving augmented dataset...")
+    split_and_save_dataset(
+    data=torch.tensor(balanced_data, dtype=torch.float32),
+    labels=torch.tensor(balanced_labels, dtype=torch.long),
+    output_dir=OUTPUT_DIR,
+    train_ratio=0.6,
+    val_ratio=0.2,
+    test_ratio=0.2
+)
+
     print(f"Data split and saved to {OUTPUT_DIR}.")

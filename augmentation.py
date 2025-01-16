@@ -1,43 +1,70 @@
+import torch
 import numpy as np
+import os
 
-def augment_and_label(data, labels, num_classes=3, augment_factor=2):
-    """
-    Balances the dataset by creating synthetic labels and augmenting data.
+# Paths
+DATA_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\cleaned_data.pt"
+LABELS_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\cleaned_labels.pt"
+OUTPUT_DATA_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\augmented_data.pt"
+OUTPUT_LABELS_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\augmented_labels.pt"
 
-    Args:
-        data (np.ndarray): Original EEG data.
-        labels (np.ndarray): Corresponding labels (single class).
-        num_classes (int): Total number of synthetic classes to create.
-        augment_factor (int): Number of augmentations per original sample.
+# Data Augmentation Functions
+def time_shift(data, shift=10):
+    """Apply time shift to the data."""
+    if data.ndim != 2:
+        raise ValueError("Input data must be 2-dimensional (samples, features).")
+    return np.roll(data, shift, axis=1)
 
-    Returns:
-        tuple: Augmented data and balanced labels.
-    """
-    augmented_data = []
-    augmented_labels = []
+def noise_injection(data, noise_level=0.01):
+    """Add random noise to the data."""
+    if data.ndim != 2:
+        raise ValueError("Input data must be 2-dimensional (samples, features).")
+    noise = noise_level * np.random.randn(*data.shape)
+    return data + noise
 
-    class_size = len(data) // num_classes
+def augment_data(data, labels, augment_factor=1.3):
+    """Augment the data and replicate labels."""
+    if data.ndim != 2:
+        raise ValueError("Input data must be 2-dimensional (samples, features).")
+    
+    augmented_data = data.copy()
+    augmented_labels = labels.copy()
+    
+    # Apply augmentation with the reduced augment factor
+    for _ in range(augment_factor):
+        # Apply time shift and noise injection, but don't over-augment
+        augmented_data = np.vstack((augmented_data, time_shift(data)))
+        augmented_labels = np.hstack((augmented_labels, labels))  # Replicate the labels
 
-    for class_id in range(num_classes):
-        start_idx = class_id * class_size
-        end_idx = start_idx + class_size
+        augmented_data = np.vstack((augmented_data, noise_injection(data)))
+        augmented_labels = np.hstack((augmented_labels, labels))  # Replicate the labels
+    
+    # Return augmented data and labels
+    return augmented_data, augmented_labels
 
-        class_data = data[start_idx:end_idx]
-        class_label = class_id
+# Main Script
+if __name__ == "__main__":
+    print("Loading cleaned data...")
+    data = torch.load(DATA_PATH).numpy()
+    labels = torch.load(LABELS_PATH).numpy()
 
-        for signal in class_data:
-            augmented_data.append(signal)
-            augmented_labels.append(class_label)
+    print(f"Original data shape: {data.shape}")
+    print(f"Original labels shape: {labels.shape}")
 
-            for _ in range(augment_factor):
-                # Gaussian noise
-                noisy_signal = signal + np.random.normal(0, 0.01, size=signal.shape)
+    # Ensure data is 2D
+    if data.ndim != 2:
+        print(f"Error: Data shape is {data.shape}. Reshaping...")
+        data = data.reshape(data.shape[0], -1)
 
-                # Amplitude scaling
-                scaling_factor = np.random.uniform(0.8, 1.2)
-                scaled_signal = signal * scaling_factor
+    print("Applying data augmentation...")
+    augmented_data, augmented_labels = augment_data(data, labels, augment_factor=1)  # Reduced augment factor
 
-                augmented_data.extend([noisy_signal, scaled_signal])
-                augmented_labels.extend([class_label] * 2)
+    print(f"Augmented data shape: {augmented_data.shape}")
+    print(f"Augmented labels shape: {augmented_labels.shape}")
 
-    return np.array(augmented_data), np.array(augmented_labels)
+    # Saving augmented data
+    print("Saving augmented data...")
+    torch.save(torch.tensor(augmented_data, dtype=torch.float32), OUTPUT_DATA_PATH)
+    torch.save(torch.tensor(augmented_labels, dtype=torch.long), OUTPUT_LABELS_PATH)
+    print(f"Augmented data saved to {OUTPUT_DATA_PATH}")
+    print(f"Augmented labels saved to {OUTPUT_LABELS_PATH}")

@@ -38,3 +38,57 @@ This file contains a detailed log of all changes and milestones for the `EEG-Ana
   - Training, validation, and test sets saved as `.pt` files.
 - Files saved in: `C:\Users\prajw\Desktop\docs\All Projects\EEG\EEG-Analysis-Chatbot\processed_data\Bon_UKB`.
 
+
+### Completed Tasks:
+- **MLP Model Troubleshooting**:
+  - Worked on debugging the MLP model. Fixed issues with target values during training.
+  - Resolved class imbalance by applying class weighting.
+  - Evaluated the model and analyzed metrics like accuracy, precision, recall, and F1 score.
+
+- **Implemented CNN Model**:
+  - Developed a Convolutional Neural Network (CNN) model for EEG data.
+  - Addressed input tensor shape issues, successfully training the CNN model with the following results:
+    - Epoch [150/150], Loss: 0.0283
+    - Test Accuracy: 86.11%
+  - Saved the trained CNN model and ensured correct evaluation.
+
+- **Model Evaluation**:
+  - After training the CNN model, the model was evaluated on the test set.
+  - Achieved an accuracy of 86.11% on the test data.
+
+- **Random Forest, XGBoost, and LightGBM Models**:
+  - Trained multiple machine learning models: **Random Forest**, **XGBoost**, and **LightGBM**.
+  - Performed hyperparameter tuning with **GridSearchCV** for Random Forest and **RandomizedSearchCV** for XGBoost and LightGBM.
+  - Best results:
+    - **Random Forest**: 
+      - Best parameters: {'max_depth': 10, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 200}
+      - Best score: 91.77% accuracy.
+    - **XGBoost**:
+      - Best parameters: {'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 6, 'subsample': 1.0}
+      - Best score: 94.44% accuracy.
+    - **LightGBM**:
+      - Best parameters: {'num_leaves': 31, 'n_estimators': 300, 'max_depth': 3, 'learning_rate': 0.3}
+      - Best score: 94.56% accuracy.
+  - Evaluated all three models, and test accuracies:
+    - **Optimized Random Forest Test Accuracy**: 90.56%
+    - **Optimized XGBoost Test Accuracy**: 94.44%
+    - **Optimized LightGBM Test Accuracy**: 92.78%
+
+- **Logging Progress**:
+  - Updated `LOG.md` with the results of the MLP model, CNN model, Random Forest, XGBoost, and LightGBM models.
+  - Logged the challenges faced, such as tensor shape mismatches, class imbalance in MLP, and tuning machine learning models.
+
+### Issues Resolved:
+- Fixed tensor shape mismatch issues during CNN model training.
+- Resolved problems with class weighting in the MLP model due to class imbalance in the dataset.
+- Successfully handled the training and evaluation of the CNN model on EEG data.
+- Addressed hyperparameter tuning for Random Forest, XGBoost, and LightGBM models.
+
+### Next Steps:
+- Continue with the model evaluation for more detailed insights and comparison with other models.
+- Experiment with LSTM or other deep learning architectures for EEG data analysis.
+- Fine-tune hyperparameters for optimal performance.
+
+### Achievements:
+- Successfully trained CNN, Random Forest, XGBoost, and LightGBM models and achieved satisfactory results in EEG analysis.
+- Models saved and ready for further evaluation or deployment.

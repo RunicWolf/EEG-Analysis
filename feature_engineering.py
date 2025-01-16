@@ -1,59 +1,93 @@
-from scipy.stats import kurtosis, skew
-from scipy.signal import welch
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import SelectKBest, f_classif, VarianceThreshold
+import torch
 import numpy as np
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.decomposition import PCA
+from scipy.stats import kurtosis, skew
+from scipy.fft import fft
 
-def extract_features(data, sampling_rate=256):
-    features = []
-    for signal in data:
-        mean = np.mean(signal)
-        variance = np.var(signal)
-        skewness = skew(signal)
-        kurt = kurtosis(signal)
-        freqs, psd = welch(signal, fs=sampling_rate)
-        psd_mean = np.mean(psd)
-        psd_variance = np.var(psd)
-        feature_vector = [mean, variance, skewness, kurt, psd_mean, psd_variance]
-        features.append(feature_vector)
-    return np.array(features)
+# Paths
+DATA_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\augmented_data.pt"
+LABELS_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\augmented_labels.pt"
+OUTPUT_DATA_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\enhanced_data.pt"
+OUTPUT_LABELS_PATH = r"C:\\Users\\prajw\\Desktop\\docs\\All Projects\\EEG\\EEG-Analysis-Chatbot\\processed_data\\Bon_UKB\\enhanced_labels.pt"
 
-def one_hot_encode_labels(labels):
-    from sklearn.preprocessing import OneHotEncoder
-    encoder = OneHotEncoder(sparse_output=False)
-    labels = labels.reshape(-1, 1)
-    one_hot_labels = encoder.fit_transform(labels)
-    return one_hot_labels, labels.ravel()
+def load_data(data_path, labels_path):
+    data = torch.load(data_path).numpy()
+    labels = torch.load(labels_path).numpy()
+    return data, labels
 
-def apply_pca(features, n_components=None):
-    if n_components is None or n_components > features.shape[1]:
-        n_components = features.shape[1]
+def create_statistical_features(data):
+    mean = np.mean(data, axis=1, keepdims=True)
+    std = np.std(data, axis=1, keepdims=True)
+    var = np.var(data, axis=1, keepdims=True)
+    skewness = skew(data, axis=1).reshape(-1, 1)
+    kurt = kurtosis(data, axis=1).reshape(-1, 1)
+    return np.hstack([mean, std, var, skewness, kurt])
+
+def create_frequency_features(data):
+    fft_features = np.abs(fft(data, axis=1))[:, :data.shape[1] // 2]
+    power = np.sum(np.square(fft_features), axis=1, keepdims=True)
+    return np.hstack([fft_features, power])
+
+def normalize_features(data, method="zscore"):
+    if method == "zscore":
+        scaler = StandardScaler()
+    elif method == "minmax":
+        scaler = MinMaxScaler()
+    else:
+        raise ValueError("Unsupported normalization method.")
+    return scaler.fit_transform(data)
+
+def dimensionality_reduction(data, n_components=0.95):
     pca = PCA(n_components=n_components)
-    reduced_features = pca.fit_transform(features)
+    reduced_data = pca.fit_transform(data)
     print(f"PCA explained variance ratio: {pca.explained_variance_ratio_}")
-    return reduced_features
+    return reduced_data
 
-def remove_constant_features(features, threshold=0.01):
-    selector = VarianceThreshold(threshold=threshold)
-    return selector.fit_transform(features)
+def handle_missing_values(data, method="mean"):
+    """
+    Handles missing values in the data.
 
-def select_top_features(features, labels, k=5):
-    selector = SelectKBest(score_func=f_classif, k="all")
-    scores = selector.fit(features, labels).scores_
+    Args:
+        data (np.ndarray): Input data with potential NaN values.
+        method (str): Strategy to handle NaN values ("mean", "median", or "drop").
 
-    valid_indices = ~np.isnan(scores)
-    if np.sum(valid_indices) == 0:  # Fallback if all scores are NaN
-        print("No valid scores computed. Returning original features.")
-        return features
+    Returns:
+        np.ndarray: Data with missing values handled.
+    """
+    if method == "mean":
+        return np.nan_to_num(data, nan=np.nanmean(data, axis=0))
+    elif method == "median":
+        return np.nan_to_num(data, nan=np.nanmedian(data, axis=0))
+    elif method == "drop":
+        return data[~np.isnan(data).any(axis=1)]
+    else:
+        raise ValueError("Unsupported method for handling missing values.")
 
-    filtered_features = features[:, valid_indices]
-    filtered_scores = scores[valid_indices]
+if __name__ == "__main__":
+    print("Loading augmented data...")
+    data, labels = load_data(DATA_PATH, LABELS_PATH)
 
-    k = min(k, filtered_features.shape[1])  # Dynamically adjust k
-    top_k_indices = np.argsort(filtered_scores)[-k:]
-    top_features = filtered_features[:, top_k_indices]
+    print("Creating statistical features...")
+    statistical_features = create_statistical_features(data)
 
-    print(f"Valid feature scores: {filtered_scores}")
-    print(f"Selected top {k} features.")
+    print("Creating frequency features...")
+    frequency_features = create_frequency_features(data)
 
-    return top_features
+    print("Combining features...")
+    combined_features = np.hstack([data, statistical_features, frequency_features])
+    print(f"Original feature size: {data.shape[1]}, New feature size: {combined_features.shape[1]}")
+
+    print("Handling missing values...")
+    combined_features = handle_missing_values(combined_features, method="mean")
+
+    print("Normalizing features...")
+    normalized_features = normalize_features(combined_features, method="zscore")
+
+    print("Applying PCA for dimensionality reduction...")
+    reduced_features = dimensionality_reduction(normalized_features, n_components=0.95)
+
+    print("Saving enhanced features...")
+    torch.save(torch.tensor(reduced_features, dtype=torch.float32), OUTPUT_DATA_PATH)
+    torch.save(torch.tensor(labels, dtype=torch.float32), OUTPUT_LABELS_PATH)
+    print(f"Data saved to {OUTPUT_DATA_PATH}, Labels saved to {OUTPUT_LABELS_PATH}.")
